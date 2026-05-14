@@ -1,38 +1,49 @@
-# tcldocs::config -- Changelog
+# tcldocs::config — Changelog
 
-## 2026-05-13 -- 0.1 Initial
+## 2026-05-14 — Makefile fix: pkgIndex.tcl is merged, not overwritten
 
-Extrahiert aus mdhelp4's `app/shared_config.tcl` als eigenstaendiges
-Mini-Repo. Identische API, jetzt mit `package require` einbindbar
-statt per `source`.
+### Fixed
+
+- **`Makefile`** — `install` and `install-user` previously overwrote
+  `~/lib/tcltk/pkgIndex.tcl`, dropping entries from other modules
+  installed at the same prefix. Now: the `pkgIndex.tcl` entry for
+  `tcldocs::config` is generated inline and appended only if not
+  already present (idempotent). `uninstall` surgically removes only
+  its own line via `sed`, preserving entries from other modules.
+
+## 2026-05-13 — 0.1 initial release
+
+Extracted from mdhelp's `app/shared_config.tcl` as a standalone
+mini-repository. Identical API, now usable via `package require`
+instead of `source`.
 
 ### Added
 
-- **Modul** `lib/tm/tcldocs/config-0.1.tm` -- Public API:
+- **Module** `lib/tm/tcldocs/config-0.1.tm` — public API:
   `path`, `loadShared`, `saveShared`, `getShared`, `setShared`.
-- **`lib/tm/pkgIndex.tcl`** -- statisch gepflegt (1 Modul, kein
-  generator noetig).
-- **`tests/test-config.tcl`** -- 12 Tests, headless, ohne externe
-  Dependencies. Nutzt `/tmp/tcldocs-config-test.<pid>/` als Sandbox.
-- **`Makefile`** mit Standard-Targets (`install`, `install-user`,
+- **`lib/tm/pkgIndex.tcl`** — maintained statically (one module, no
+  generator needed).
+- **`tests/test-config.tcl`** — 12 tests, headless, no external
+  dependencies. Uses `/tmp/tcldocs-config-test.<pid>/` as a sandbox.
+- **`Makefile`** with standard targets (`install`, `install-user`,
   `uninstall`, `test`, `help`).
-- **`README.md`** mit API-Beispielen, standardisierten Keys und
-  Migrations-Hinweis fuer mdhelp4.
+- **`README.md`** with API examples, standardized keys, and a
+  migration note for mdhelp.
 
-### Konsumenten
+### Consumers
 
-Geplant: `mdhelp4` (Migration aus `app/shared_config.tcl`),
-`tcltk-glossary`, `man-viewer`. Apps koennen das Modul jetzt einbauen
-ohne ihre eigene Settings-Persistenz pflegen zu muessen.
+Planned: `mdhelp` (migration from `app/shared_config.tcl`),
+`tcltk-glossary`, `man-viewer`. Apps can now embed the module
+without maintaining their own settings-persistence code.
 
-### Geteilte Convention
+### Shared convention
 
-Standardisierte Keys (alle optional, mit sinnvollen App-internen Defaults):
+Standardized keys (all optional, with sensible app-internal defaults):
 
-| Key | Werte |
-|---|---|
+| Key | Values |
+|-----|--------|
 | `theme` | `light` / `dark` / `auto` |
 | `fontSize` | 9..24 |
 | `fontFamily` | font name |
 | `lang` | `de` / `en` |
-| `deeplApiKey`, `deeplUsePro` | DeepL-Helper Settings |
+| `deeplApiKey`, `deeplUsePro` | DeepL helper settings |

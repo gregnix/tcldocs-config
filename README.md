@@ -1,107 +1,106 @@
 # tcldocs::config
 
-App-übergreifende Settings für den Tcl/Tk Docu-Stack
-(`mdhelp4`, `tcltk-glossary`, `man-viewer`, …).
+Cross-application settings for the Tcl/Tk Docu-Stack
+(`mdhelp`, `tcltk-glossary`, `man-viewer`, …).
 
 **Version:** 0.1
 
-## Was es ist
+## What it is
 
-Ein einzelnes Tcl-Modul (`tcldocs::config 0.1`) das eine kleine
-Persistenz-Schicht über `~/.tcldocs.rc` legt. Apps lesen und
-schreiben gemeinsame Einstellungen (Theme, Schriftgröße, Sprache,
-…) über vier Public-API-Funktionen.
+A single Tcl module (`tcldocs::config 0.1`) providing a small
+persistence layer over `~/.tcldocs.rc`. Apps read and write shared
+settings (theme, font size, language, …) through four public API
+functions.
 
-Wert dieses Mini-Repos: vermeidet dass jede App eine eigene
-Settings-Datei mit eigenem Format pflegt. Ein dark/light-Wechsel
-in der Glossary-App soll beim nächsten Start von mdhelp4
-übernommen werden.
+Purpose: avoid each app maintaining its own settings file with its
+own format. A dark/light switch made in the glossary app applies
+to the next mdhelp launch automatically.
 
 ## Public API
 
 ```tcl
 package require tcldocs::config
 
-tcldocs::path                       ;# Pfad zur Config-Datei (~/.tcldocs.rc)
-tcldocs::loadShared                 ;# komplette Config als dict
-tcldocs::saveShared $dict           ;# atomarer Write
-tcldocs::getShared key ?default?    ;# Einzelwert lesen (mit Default-Fallback)
-tcldocs::setShared key value        ;# Einzelwert schreiben (lade + merge + speichere)
+tcldocs::path                       ;# path to config file (~/.tcldocs.rc)
+tcldocs::loadShared                 ;# return full config as a dict
+tcldocs::saveShared $dict           ;# atomic write
+tcldocs::getShared key ?default?    ;# read one value (with default fallback)
+tcldocs::setShared key value        ;# write one value (load + merge + save)
 ```
 
-Beispiel aus einer App:
+Example use in an app:
 
 ```tcl
 package require tcldocs::config
 
-# Setting laden mit Fallback wenn noch nicht gesetzt
+# Load setting with a fallback if not yet set
 set theme [tcldocs::getShared theme "light"]
 applyTheme $theme
 
-# Bei User-Wechsel persistieren
+# Persist on user change
 proc onThemeChanged {newTheme} {
     tcldocs::setShared theme $newTheme
 }
 ```
 
-## Standardisierte Keys
+## Standardized Keys
 
-Diese Keys sind Convention zwischen den Apps:
+These keys form a convention shared between apps:
 
-| Key | Werte | Bedeutung |
-|---|---|---|
-| `theme` | `light` / `dark` / `auto` | UI-Theme |
-| `fontSize` | `9..24` | Schriftgröße in pt |
-| `fontFamily` | `Helvetica`, `DejaVu Sans`, … | Font-Familie |
-| `lang` | `de` / `en` | UI-Sprache |
-| `deeplApiKey` | opaque string | DeepL-API-Key (mdhelp4) |
-| `deeplUsePro` | `0` / `1` | DeepL Pro-Modus |
+| Key | Values | Meaning |
+|-----|--------|---------|
+| `theme` | `light` / `dark` / `auto` | UI theme |
+| `fontSize` | `9..24` | Font size in pt |
+| `fontFamily` | `Helvetica`, `DejaVu Sans`, … | Font family |
+| `lang` | `de` / `en` | UI language |
+| `deeplApiKey` | opaque string | DeepL API key (mdhelp) |
+| `deeplUsePro` | `0` / `1` | DeepL Pro mode |
 
-Apps dürfen eigene Keys hinzufügen. Konvention: app-spezifische Keys
-mit App-Präfix, z.B. `mdhelpRecentFiles`, `glossaryLastQuery`.
+Apps may add their own keys. Convention: app-specific keys carry an
+app prefix, e.g. `mdhelpRecentFiles`, `glossaryLastQuery`.
 
-## Format `~/.tcldocs.rc`
+## Format of `~/.tcldocs.rc`
 
 ```tcl
 # tcldocs shared config -- auto-generated
-# Manuelles Editieren erlaubt; Format: shared { key value ... }
+# Manual editing is allowed; format: shared { key value ... }
 
 shared {
     theme       light
     fontSize    12
     fontFamily  {DejaVu Sans}
-    lang        de
+    lang        en
 }
 ```
 
-Atomares Schreiben: erst nach `~/.tcldocs.rc.tmp`, dann `rename`.
-Crash beim Schreiben → alte Datei bleibt intakt.
+Atomic write: writes to `~/.tcldocs.rc.tmp` first, then renames. A
+crash during writing leaves the previous file intact.
 
 ## Installation
 
 ```bash
-make install         # systemweit (sudo)
+make install         # system-wide (sudo)
 make install-user    # ~/lib/tcltk/tcldocs/
 make uninstall
 make test
 ```
 
-## Migration aus mdhelp4
+## Migration from mdhelp
 
-mdhelp4 hatte einen lokalen `app/shared_config.tcl` mit identischer
-API. Migration für mdhelp4:
+mdhelp previously carried a local `app/shared_config.tcl` with an
+identical API. Migration:
 
 ```tcl
-# Statt:
+# Before:
 source [file join $scriptDir shared_config.tcl]
 
-# Jetzt:
+# After:
 package require tcldocs::config
 ```
 
-API-Aufrufe (`::tcldocs::setShared`, `::tcldocs::getShared`, …) bleiben
-unverändert. Anschließend kann `app/shared_config.tcl` aus dem
-mdhelp4-Repo entfernt werden.
+API calls (`::tcldocs::setShared`, `::tcldocs::getShared`, …) stay
+unchanged. The local `app/shared_config.tcl` can be removed
+afterwards.
 
 ## Tests
 
@@ -109,9 +108,10 @@ mdhelp4-Repo entfernt werden.
 tclsh tests/test-config.tcl
 ```
 
-12 Tests, keine externen Dependencies, läuft headless. Nutzt
-`/tmp/tcldocs-config-test.<pid>/` als Sandbox.
+12 tests, no external dependencies, runs headless. Uses
+`/tmp/tcldocs-config-test.<pid>/` as a sandbox.
 
-## Lizenz
+## License
 
-Identisch mit den anderen Repos im Tcl/Tk Docu-Stack.
+Same as the other repositories in the Tcl/Tk Docu-Stack — MIT for
+code. See the `LICENSE` file in this repository.
